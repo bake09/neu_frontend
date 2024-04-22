@@ -15,7 +15,26 @@
           Frontend App
         </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <q-btn flat round dense icon="more_vert">
+          <q-menu>
+            <q-list style="min-width: 100px">
+              <q-item 
+                v-for="link in settingsStore.links"
+                :key="link.id"
+                clickable 
+                exact 
+                :to="link.route" 
+                exact-active-class="primary">
+                <q-item-section avatar>
+                  <q-icon :name="link.icon" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ link.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
       </q-toolbar>
     </q-header>
 
@@ -30,22 +49,19 @@
         >
           Links
         </q-item-label>
-        <q-item clickable exact to="/">
-          <q-item-section>
-            <q-item-label>Home</q-item-label>
-            <q-item-label caption>IndexPage</q-item-label>
+
+        <q-item 
+          v-for="link in settingsStore.links"
+          :key="link.id"
+          clickable 
+          exact 
+          :to="link.route" 
+          exact-active-class="primary">
+          <q-item-section avatar>
+            <q-icon :name="link.icon" />
           </q-item-section>
-        </q-item>
-        <q-item clickable exact to="/login">
           <q-item-section>
-            <q-item-label>Login</q-item-label>
-            <q-item-label caption>LoginPage</q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item clickable exact to="/register">
-          <q-item-section>
-            <q-item-label>Register</q-item-label>
-            <q-item-label caption>RegisterPage</q-item-label>
+            <q-item-label>{{ link.label }}</q-item-label>
           </q-item-section>
         </q-item>
       </q-list>
@@ -59,6 +75,10 @@
 
 <script setup>
 import { ref } from 'vue'
+
+import { useSettingsStore } from "stores/settings-store";
+const settingsStore = useSettingsStore()
+
   const leftDrawerOpen = ref(false)
 
   const toggleLeftDrawer = () => {
