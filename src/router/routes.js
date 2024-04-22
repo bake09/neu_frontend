@@ -7,7 +7,8 @@ const routes = [
       { 
         path: '', 
         // component: () => import('pages/IndexPage.vue'),
-        redirect: { name: 'tasks' },
+        component: () => import('pages/TaskPage.vue'),
+        // redirect: { name: 'tasks' },
         name: 'index'
       },
       { 
