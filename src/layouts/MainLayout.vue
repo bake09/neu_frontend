@@ -30,6 +30,24 @@
         >
           Links
         </q-item-label>
+        <q-item clickable exact to="/">
+          <q-item-section>
+            <q-item-label>Home</q-item-label>
+            <q-item-label caption>IndexPage</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item clickable exact to="/login">
+          <q-item-section>
+            <q-item-label>Login</q-item-label>
+            <q-item-label caption>LoginPage</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item clickable exact to="/register">
+          <q-item-section>
+            <q-item-label>Register</q-item-label>
+            <q-item-label caption>RegisterPage</q-item-label>
+          </q-item-section>
+        </q-item>
       </q-list>
     </q-drawer>
 
