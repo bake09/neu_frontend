@@ -2,10 +2,12 @@
   <router-view />
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script setup>
 
-export default defineComponent({
-  name: 'App'
-})
 </script>
+
+<style>
+.q-inner-loading {
+  background: rgb(137 137 137 / 60%);
+}
+</style>

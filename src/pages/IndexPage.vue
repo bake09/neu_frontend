@@ -2,6 +2,12 @@
   <q-page class="q-pa-md">
     <h4>Index Page</h4>
     <pre>{{ taskStore.tasks }}</pre>
+    <q-inner-loading
+        :showing="taskStore.tasksIsLoading"
+        label="loading..."
+        label-class="primary"
+        label-style="font-size: 1.1em"
+      />
   </q-page>
 </template>
 
