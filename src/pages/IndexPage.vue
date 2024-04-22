@@ -1,24 +1,18 @@
 <template>
   <q-page class="q-pa-md">
     <h4>Index Page</h4>
-    <pre>{{ tasks }}</pre>
+    <pre>{{ taskStore.tasks }}</pre>
   </q-page>
 </template>
 
 <script setup>
 import { onMounted, ref } from "vue";
-import { api } from "boot/axios";
 
-const tasks = ref([])
+import { useTaskStore } from "stores/task-store";
+const taskStore = useTaskStore()
 
 onMounted(() => {
-  api.get('/api/task').then(res => {
-    console.log(res)
-    res.data.forEach(item => {
-      tasks.value.push(item)
-    })
-  }).catch(err => {
-    console.log(err)
-  })
+  taskStore.allTask()
+  console.log(taskStore.tasks)
 })
 </script>
