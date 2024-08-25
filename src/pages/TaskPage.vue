@@ -1,109 +1,116 @@
 <template>
-  <q-page class="q-pa-md">
-    <div class="text-h6">Tasks Page</div>
-    <div class="row q-mb-md column">
-      <q-input
-        rounded
-        outlined
-        dense
-        bottom-slots
-        v-model="taskStore.newTask"
-        label="Label"
-        :dense="dense">
-        <template v-slot:hint>
-          Field hint
-        </template>
-  
-        <template v-slot:after>
-          <q-btn
-            round
-            flat
-            icon="send"
-            @click.prevent="taskStore.addTask" />
-        </template>
-      </q-input>
+  <q-page>
+    <!-- <q-header class="shadow-2">
+      <q-toolbar>
+        <q-btn flat dense round icon="arrow_back" @click="goBack" />
+        <q-toolbar-title>Tasks PAGE</q-toolbar-title>
+      </q-toolbar>
+    </q-header> -->
+    <Header></Header>
+    <div class="absolute full-width full-height column">
+      <q-scroll-area
+        class="q-scroll-area-custom"
+        :thumb-style="settingsStore.thumbStyle"
+        :bar-style="settingsStore.barStyle"
+        ref="tasksBox">
+        <q-list v-if="!taskStore.tasks.length">
+          <ItemSkeleton v-for="i in 7" :key="i"/>
+        </q-list>
+        <q-list v-else>
+          <TaskItem v-for="task in taskStore.tasks" :key="task.id" :task="task"/>
+        </q-list>
+      </q-scroll-area>
     </div>
 
-    <q-scroll-area
-      style="height: 300px; max-width: 100%;"
-      :thumb-style="settingsStore.thumbStyle"
-      :bar-style="settingsStore.barStyle"
-      ref="tasksBox">
-      <q-list bordered separator v-if="taskStore.tasks.length">
-        <q-item clickable v-ripple v-for="task in taskStore.tasks" :key="task.id">
-          <q-item-section avatar>
-            <q-avatar color="primary" text-color="white">
-              R
-            </q-avatar>
-          </q-item-section>
+    <q-footer class="shadow-2" ref="footerRef">
+      <q-toolbar class="bg-white">
+        <TaskInput class="q-pa-xs" @task-sent="animateScroll"/>
+      </q-toolbar>
+    </q-footer>
 
-          <q-item-section>{{ task.content }}</q-item-section>
-          <q-item-section avatar>
-            <q-btn flat round color="red" icon="delete" @click.stop="taskStore.deleteTask(task)"/>
-          </q-item-section>
-        </q-item>
-      </q-list>
-      <q-inner-loading
-        :showing="taskStore.tasksIsLoading"
-        label="loading..."
-        label-class="primary"
-        label-style="font-size: 1.1em"
-      />
-    </q-scroll-area>
-    
+    <q-dialog v-model="taskStore.isModalShowing" @before-hide="taskStore.hideEditModal">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">{{ taskStore.selectedItem.id }}</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input outlined v-model="taskStore.selectedItem.content" label="Outlined" />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
-import { onMounted, ref, nextTick } from "vue";
+import { onMounted, ref, nextTick, onUnmounted } from "vue";
 import { useMeta } from 'quasar'
+import TaskItem from '../components/Task/TaskItem.vue';
+import ItemSkeleton from '../components/ItemSkeleton.vue';
+import Header from '../components/Header.vue';
+
+import { useSettingsStore } from "stores/settings-store";
+const settingsStore = useSettingsStore()
+
+const footerRef = ref(null)
+import TaskInput from '../components/Task/TaskInput.vue';
 
 const metaData = {
-  // sets document title
   title: 'Tasks Page',
-  // optional; sets final title as "Index Page - My Website", useful for multiple level meta
   titleTemplate: title => `${title} - Frontend App`,
-
-  // meta tags
   meta: {
     description: { name: 'description', content: 'Page 1' },
     keywords: { name: 'keywords', content: 'Quasar website' },
-    // note: for Open Graph type metadata you will need to use SSR, to ensure page is rendered by the server
     ogTitle:  {
       property: 'og:title',
-      // optional; similar to titleTemplate, but allows templating with other meta properties
       template (ogTitle) {
         return `${ogTitle} - Frontend App`
       }
     }
   },
 }
-
 useMeta(metaData)
 
-
-
-
-
-
-
+import { storeToRefs } from 'pinia'
 import { useTaskStore } from "stores/task-store";
-const taskStore = useTaskStore()
 
-import { useSettingsStore } from "stores/settings-store";
-const settingsStore = useSettingsStore()
+const taskStore = useTaskStore()
+const { tasks } = storeToRefs(taskStore)
 
 const tasksBox = ref(null)
 
-const position = ref(300)
-const animateScroll = () => {
-  tasksBox.value.setScrollPosition('vertical', position.value, 300)
+const animateScroll = async () => {
+  if (!tasksBox.value) return;
+  await nextTick(); // Ensure that the DOM is updated
+  const scrollTarget = tasksBox.value.getScrollTarget();
+  const scrollHeight = scrollTarget.scrollHeight;
+  tasksBox.value.setScrollPosition('vertical', scrollHeight, 150);
 }
 
-onMounted(() => {
-  taskStore.allTask()
-  console.log(tasksBox.value)
-  nextTick()
+import { echo } from "../boot/echo";
+
+onMounted(async () => {
+  await taskStore.allTask()
   animateScroll()
+
+  echo.channel(`todochannel.1`)
+  .listen('.addTodo', (payload) => {
+    taskStore.addTaskLocally(payload.task)
+    animateScroll()
+  })
+  .listen('.toggleTodo', (payload) => {
+    taskStore.toggleTaskDoneLocally(payload.task)
+  })
+  .listen('.deleteTodo', (payload) => {
+    taskStore.deleteTaskDoneLocally(payload.task)
+  });
+})
+onUnmounted(() => {
+  console.log("unmounted")
+  echo.leaveChannel(`todochannel.1`)
 })
 </script>
