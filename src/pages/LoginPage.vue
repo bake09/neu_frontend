@@ -43,8 +43,8 @@
 
   const handleLogin = async () => {
     console.log("handleLogin triggerd")
-    await authStore.handleLogin()
-    // await authStore.handleTokenLogin()
+    // await authStore.handleLogin()
+    await authStore.handleTokenLogin()
   }
   
   const handleReset = () => {

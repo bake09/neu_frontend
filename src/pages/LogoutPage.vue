@@ -27,8 +27,8 @@
   useMeta(metaData)
 
   const handleLogout = async () => {
-    await authStore.handleLogout()
-    // await authStore.handleTokenLogout()
+    // await authStore.handleLogout()
+    await authStore.handleTokenLogout()
   }
   
   onMounted(() => {

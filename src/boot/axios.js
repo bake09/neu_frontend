@@ -3,29 +3,35 @@ import axios from 'axios'
 import { echo } from 'src/boot/echo';
 
 import { useAuthStore } from "stores/auth-store";
+import { LocalStorage } from 'quasar';
 // const authStore = useAuthStore()
 
 const api = axios.create({ baseURL: process.env.VUE_APP_API_URL })
 
-api.defaults.withCredentials = true;
-api.defaults.withXSRFToken = true;
+if(false){
+  api.defaults.withCredentials = true;
+  api.defaults.withXSRFToken = true;
+  
+  api.get('/csrf-cookie').then(res => {
+    // console.log(res)
+  }).catch(err => {
+    console.log("Error retieving CSRF-Cookie. Error: ", err)
+  })
+}else{
+}
 
-api.get('/csrf-cookie').then(res => {
-  // console.log(res)
-}).catch(err => {
-  console.log("Error retieving CSRF-Cookie. Error: ", err)
-})
-
-export default boot(({ app, router }) => {
+export default boot(async ({ app, router }) => {
   app.config.globalProperties.$axios = axios
   app.config.globalProperties.$api = api
   const authStore = useAuthStore()
 
   // Add a request interceptor to include the 'X-Socket-Id' header
-  api.interceptors.request.use(config => {
+  api.interceptors.request.use(async config => {
+    const token = `Bearer ${authStore.token}`
     const socketId = echo.socketId();
     if (socketId) {
       config.headers['X-Socket-Id'] = socketId;
+      config.headers.Authorization = token;
     }
     return config;
   }, error => {

@@ -46,9 +46,11 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthProceeding.value.label = 'Logging in...'
     try {
       const res = await api.post('auth/token/login', loginForm.value)
-      console.log("auth-store TOKEN: ", res)
+      console.log("auth-store TOKEN: ", res.data)
       token.value = res.data.token
+      user.value = res.data.user
       LocalStorage.setItem('token', res.data.token)
+      LocalStorage.setItem('user', res.data.user)
       await getUser()
       isAuthProceeding.value.loading = false // Auf await achten, um sicherzustellen, dass der Benutzer geladen wird
       this.router.replace('/chats')
