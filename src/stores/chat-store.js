@@ -188,6 +188,7 @@ export const useChatStore = defineStore('chat', () => {
     chatIsLoading,
     newMessage,
     activeChannels,
+    vapidKeys,
 
     // Getters
     getMessages,

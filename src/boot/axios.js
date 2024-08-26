@@ -27,11 +27,13 @@ export default boot(async ({ app, router }) => {
 
   // Add a request interceptor to include the 'X-Socket-Id' header
   api.interceptors.request.use(async config => {
-    const token = `Bearer ${authStore.token}`
+    const token = authStore.token
     const socketId = echo.socketId();
+    if(token){
+      config.headers.Authorization =  `Bearer ${token}`;
+    }
     if (socketId) {
       config.headers['X-Socket-Id'] = socketId;
-      config.headers.Authorization = token;
     }
     return config;
   }, error => {

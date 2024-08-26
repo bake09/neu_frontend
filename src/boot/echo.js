@@ -31,7 +31,7 @@ const echo = window.Echo = new Echo({
       }
     };
   },
-  withCredentials: true // stellt sicher, dass Cookies gesendet werden
+  // withCredentials: true // stellt sicher, dass Cookies gesendet werden
 });
 
 export default boot(({ app }) => {
