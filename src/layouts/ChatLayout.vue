@@ -27,7 +27,7 @@ import { useChatStore } from "stores/chat-store";
 const chatStore = useChatStore()
 
 onMounted(async () => {
-  console.log("mounted ChatLayout.vue")
+  // console.log("mounted ChatLayout.vue")
   if(!chatStore.chats.length){
     await chatStore.getAllChats()
   }
@@ -35,12 +35,20 @@ onMounted(async () => {
   
 })
 onUnmounted(() => {
-  console.log("unmounted ChatLayout.vue")
+  // console.log("unmounted ChatLayout.vue")
   chatStore.stopListenForMessagesInAllChats()
 })
 </script>
 
 <style>
+.background {
+  background-image: url('/background.png');
+  background-size: cover;
+}
+
+.bg-transparent2{
+  background-color: transparent !important;
+}
 body {
   overflow: hidden;
 }

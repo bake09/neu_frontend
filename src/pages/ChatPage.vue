@@ -3,7 +3,7 @@
 
     <Header />
 
-    <div class="absolute full-width full-height column">
+    <div class="absolute full-width full-height column q-pb-xl">
       <q-scroll-area
         class="q-scroll-area-custom"
         :thumb-style="settingsStore.thumbStyle"
@@ -21,13 +21,13 @@
             class="q-px-sm"
             >
             <div class="flex">
-              <q-item-label >
+              <q-item-label>
                 <div :class="{ 'text-collapsed': !showMore }" v-html="formattedMessage(message.content)"></div>
                 <q-btn v-if="isLongText(message.content)" flat size="md" @click="toggleShowMore">
                   {{ showMore ? 'Weniger' : 'Mehr' }}
                 </q-btn>
               </q-item-label>
-              <div class="timestamp">{{ message.created_at_time }} 
+              <div class="timestamp">{{ message.created_at_time }}
                 <q-icon name="check" style="font-size: 14px;"/>
                 <q-icon name="done_all"  style="font-size: 14px;"/>
               </div>
@@ -36,52 +36,14 @@
         </span>
       </q-scroll-area>
 
-      <!-- <q-infinite-scroll 
-        @load="onLoad" 
-        reverse 
-        class="q-scroll-area-custom" 
-        :thumb-style="settingsStore.thumbStyle"
-        :bar-style="settingsStore.barStyle" 
-        ref="chatBox">
-        <template v-slot:loading>
-          <div class="row justify-center q-my-md">
-            <q-spinner color="primary" name="dots" size="40px" />
-          </div>
-        </template>
-
-        <q-chat-message
-          v-if="chatStore.currentChat" 
-          v-for="(message, index) in chatStore.currentChat.messages" 
-          :key="index" 
-          :name="message.user.name"
-          avatar="https://cdn.quasar.dev/img/avatar4.jpg"
-          :sent="authStore.user.id == message.user.id ? true : false"
-          :bg-color="authStore.user.id == message.user.id ? 'grey-2 shadow-6' : 'green-2 shadow-6'"
-          class="q-px-sm">
-          <div class="flex">
-            <q-item-label >
-              <div :class="{ 'text-collapsed': !showMore }" v-html="formattedMessage(message.content)"></div>
-              <q-btn v-if="isLongText(message.content)" flat size="md" @click="toggleShowMore">
-                {{ showMore ? 'Weniger' : 'Mehr' }}
-              </q-btn>
-            </q-item-label>
-            <div class="timestamp">{{ message.created_at_time }} 
-              <q-icon name="check" style="font-size: 14px;"/>
-              <q-icon name="done_all"  style="font-size: 14px;"/>
-            </div>
-          </div>
-        </q-chat-message>
-      </q-infinite-scroll> -->
-
       <q-inner-loading :showing="chatStore.chatIsLoading">
         <q-spinner-gears size="50px" color="primary" />
       </q-inner-loading>
     </div>
     
-    <q-footer class="shadow-2 bg-transparent2">
-      <!-- <ChatInput class="q-pa-xs" @message-sent="animateScroll" @isTyping="isTyping" /> -->
+    <div class="shadow-2s custom-footer">
       <ChatInput class="q-pa-xs" @message-sent="animateScroll" @isTyping="chatStore.whisperIsTyping(authStore.user.name)" />
-    </q-footer>
+    </div>
   </q-page>
 </template>
 
@@ -168,13 +130,11 @@ const onLoad = (index, done) => {
 </script>
 
 <style>
-.background {
-  background-image: url('/background.png');
-  background-size: cover;
-}
-
-.bg-transparent2{
-  background-color: transparent !important;
+.custom-footer{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
 }
 .q-message-text:last-child {
   min-height: 0 !important;

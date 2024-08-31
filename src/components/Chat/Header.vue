@@ -9,7 +9,8 @@
         </q-item-section>
       </q-item>
 
-      <q-btn flat round icon="more_vert" @click="goBack" />
+      <!-- <q-btn flat round icon="more_vert" @click="goBack" /> -->
+      <HeaderMenueRight />
 
     </q-toolbar>
 
@@ -35,13 +36,15 @@
         </q-item-section>
       </q-item>
 
-      <q-btn flat round icon="more_vert" @click="goBack" />
+      <!-- <q-btn flat round icon="more_vert" @click="goBack" /> -->
+      <HeaderMenueRight />
 
     </q-toolbar>
   </q-header>
 </template>
 
 <script setup>
+import HeaderMenueRight from 'src/components/HeaderMenueRight.vue'
 import { ref } from "vue";
 import { useChatStore } from "stores/chat-store";
 const chatStore = useChatStore()

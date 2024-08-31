@@ -146,7 +146,7 @@ const bodyRef = ref(null)
 
 onMounted(() => {
   // setHeights()
-  authStore.getUser()
+  // authStore.getUser()
 })
 // const setHeights = () => {
 //   settingsStore.clientHeight = clientRef.value.$el.clientHeight

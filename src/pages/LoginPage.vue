@@ -42,7 +42,7 @@
   useMeta(metaData)
 
   const handleLogin = async () => {
-    console.log("handleLogin triggerd")
+    // console.log("handleLogin triggerd")
     // await authStore.handleLogin()
     await authStore.handleTokenLogin()
   }
