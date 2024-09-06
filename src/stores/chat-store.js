@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { api } from "boot/axios";
-import { LocalStorage, useTimeout } from "quasar";
+import { ref, computed, watch } from 'vue'
+import { api } from "boot/axios"
+import { LocalStorage, useTimeout } from "quasar"
 
-import { echo } from "../boot/echo";
-import { useRoute } from "vue-router";
-
+import { echo } from "../boot/echo"
+import { useRoute } from "vue-router"
 
 export const useChatStore = defineStore('chat', () => {
   
@@ -15,11 +14,28 @@ export const useChatStore = defineStore('chat', () => {
 
   // State
   const chats = ref(LocalStorage.getItem('chats') || [])
-  const currentChat = ref(LocalStorage.getItem('currentChat') || null)
+  const currentChat = ref(LocalStorage.getItem('currentChat') || [])
   const chatsIsLoading = ref(false)
   const chatIsLoading = ref(false)
   const activeChannels = ref([])
   const newMessage = ref('')
+  const loadMoreShowingIteration = ref(-1)
+  const loadMoreShowing = ref(false)
+  const showAttachmentDialog = ref(false)
+  const showFileDialog = ref(false)
+
+  const selectedImage = ref(null)
+  const selectedImageUrl = ref(null)
+  const selectedImageRatio = ref(null)
+
+  // watch showFileDialog to Clear on Close
+  watch(showFileDialog, () => {
+    if(!showFileDialog.value){
+      selectedImage.value = null
+      selectedImageUrl.value = null
+      selectedImageRatio.value = null
+    }
+  })
 
   const vapidKeys = ref({
     public: 'BKneabAy3ho7u9AjgrRH7RXGs77SKinBg4AEWEKGiVp-fVjBq-RdV5Gz3g8MO1lmFYQlWYlSOp68aFmzKV5oWBI',
@@ -56,6 +72,7 @@ export const useChatStore = defineStore('chat', () => {
     try {
       const res = await api.get(`/chat/${id}`)
       console.log("res : ", res)
+      console.log("res.data.messages.data : ", res.data.messages.data)
       currentChat.value.messages = res.data.messages.data
     } catch (err) {
       console.log(err)
@@ -66,10 +83,39 @@ export const useChatStore = defineStore('chat', () => {
   async function addMessage() {
     chatsIsLoading.value = true
     try {
-      const res = await api.post('/chat', { content: newMessage.value, chat_id: currentChat.value.id })
+      // const res = await api.post('/chat', { content: newMessage.value, chat_id: currentChat.value.id })
+      // console.log("res : ", res)
+      // newMessage.value = ''
+      // addMessageLocally(res.data.message)
+
+      const formData = new FormData()
+
+      // Füge die Nachrichten-Daten hinzu
+      formData.append('content', newMessage.value)
+      formData.append('chat_id', currentChat.value.id)
+
+      // Wenn ein Bild hochgeladen wurde, füge es hinzu
+      if (selectedImage.value) {
+        formData.append('image', selectedImage.value)
+      }
+
+      // API-Anfrage mit FormData senden
+      const res = await api.post('/chat', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+
+      // Erfolgreich gesendete Nachricht lokal hinzufügen
       console.log("res : ", res)
       newMessage.value = ''
+      selectedImage.value = null
+      selectedImageUrl.value = null
+      selectedImageRatio.value = null
       addMessageLocally(res.data.message)
+
+      // Hide Dialog
+      showFileDialog.value = false
     } catch (err) {
       console.log("task-store : ", err)
       newMessage.value = ''
@@ -138,7 +184,6 @@ export const useChatStore = defineStore('chat', () => {
       }
     }, 700)
   }
-
   const listenForMessagesInAllChats = async() => {
     chats.value.forEach((chatItem) => {
       echo.private(`chatchannel.${chatItem.id}`)
@@ -157,7 +202,6 @@ export const useChatStore = defineStore('chat', () => {
         activeChannels.value.push(chatItem.id)
     })
   }
-
   const stopListenForMessagesInAllChats = async () => {
     chats.value.forEach((chatItem) => {
       // echo.private(`chatchannel.${chatItem.id}`)
@@ -167,7 +211,6 @@ export const useChatStore = defineStore('chat', () => {
     })
     activeChannels.value = []
   }
-
   const whisperIsTyping = (userName) => {
     echo.private(`chatchannel.${currentChat.value.id}`)
       .whisper('userIsTyping', {
@@ -177,6 +220,44 @@ export const useChatStore = defineStore('chat', () => {
           },
           content: newMessage.value
       })
+  }
+  const handleImageUpload = (event) => {
+    const target = event.target
+    const file = target.files?.[0]
+
+    if (file) {
+      selectedImage.value = file
+      selectedImageUrl.value = URL.createObjectURL(file)
+      
+      // Bild-Element erstellen, um das Verhältnis zu berechnen
+      const img = new Image()
+      img.src = URL.createObjectURL(file)
+      img.onload = () => {
+        const width = img.width
+        const height = img.height
+
+        // Berechne das Verhältnis
+        const aspectRatio = width / height;
+
+        // Standard-Verhältnisse und deren numerische Werte
+        const aspectRatios = {
+          '16/9': 16 / 9,
+          '4/3': 4 / 3,
+          '1/1': 1 / 1,
+          '3/4': 3 / 4,
+          '9/16': 9 / 16,
+        };
+
+        // Funktion zum Finden des am nächsten liegenden Verhältnisses
+        const closestRatio = Object.keys(aspectRatios).reduce((prev, curr) => {
+          return Math.abs(aspectRatios[curr] - aspectRatio) < Math.abs(aspectRatios[prev] - aspectRatio) ? curr : prev;
+        });
+
+        selectedImageRatio.value = closestRatio;
+      }
+
+      showFileDialog.value = true
+    }
   }
 
   // Return everything
@@ -189,6 +270,13 @@ export const useChatStore = defineStore('chat', () => {
     newMessage,
     activeChannels,
     vapidKeys,
+    loadMoreShowing,
+    loadMoreShowingIteration,
+    showAttachmentDialog,
+    showFileDialog,
+    selectedImage,
+    selectedImageUrl,
+    selectedImageRatio,
 
     // Getters
     getMessages,
@@ -206,7 +294,8 @@ export const useChatStore = defineStore('chat', () => {
     setTypingInfo,
     listenForMessagesInAllChats,
     stopListenForMessagesInAllChats,
-    whisperIsTyping
-  
+    whisperIsTyping,
+    handleImageUpload,
+
   }
 })

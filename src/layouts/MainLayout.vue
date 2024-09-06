@@ -177,7 +177,7 @@ const avatar = ref(`http://${process.env.VUE_APP_SERVER_IP}:8000/avatars/avatar2
 
 <style>
 body {
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 .q-scroll-area-custom {
   display: flex;

@@ -22,7 +22,11 @@
       </template>
     </q-table>
 
-    <q-dialog v-model="userStore.editModalShowing" @before-hide="userStore.hideEditModal" :position="$q.screen.gt.sm ? 'standard' : 'bottom'">
+    <q-dialog 
+      v-model="userStore.editModalShowing" 
+      @before-hide="userStore.hideEditModal" 
+      :position="$q.screen.gt.sm ? 'standard' : 'bottom'"
+      >
       <q-card>
         <q-card-section class="relative-position q-pb-sm">
           <div class="dialoghandle" v-if="$q.screen.lt.md"></div>

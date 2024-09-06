@@ -8,7 +8,11 @@
         class="q-scroll-area-custom"
         :thumb-style="settingsStore.thumbStyle"
         :bar-style="settingsStore.barStyle"
-        ref="chatBox">
+        ref="chatBox"
+        @scroll="onScroll">
+          <div class="flex flex-center" v-show="chatStore.loadMoreShowing" style="height: 40px;">
+            <q-spinner-dots color="primary" size="40px" />
+          </div>
         <span
           v-if="chatStore.currentChat"
           v-for="message in chatStore.currentChat.messages"
@@ -20,14 +24,21 @@
             :bg-color="authStore.user.id == message.user.id ? 'grey-2 shadow-6' : 'green-2 shadow-6'"
             class="q-px-sm"
             >
-            <div class="flex">
-              <q-item-label>
+            <div class="flex" :style="message.image_url ? 'min-width: 35vw;' : ''">
+              <q-img 
+                v-if="message.image_url"
+                :src="message.image_url"
+                height="80px"
+                /> 
+              <q-item-label class="q-mt-xs">
                 <div :class="{ 'text-collapsed': !showMore }" v-html="formattedMessage(message.content)"></div>
                 <q-btn v-if="isLongText(message.content)" flat size="md" @click="toggleShowMore">
                   {{ showMore ? 'Weniger' : 'Mehr' }}
                 </q-btn>
               </q-item-label>
-              <div class="timestamp">{{ message.created_at_time }}
+              <q-space />
+              <div class="timestamp">
+                <span>{{ message.created_at_time }}</span>
                 <q-icon name="check" style="font-size: 14px;"/>
                 <q-icon name="done_all"  style="font-size: 14px;"/>
               </div>
@@ -35,7 +46,6 @@
           </q-chat-message>
         </span>
       </q-scroll-area>
-
       <q-inner-loading :showing="chatStore.chatIsLoading">
         <q-spinner-gears size="50px" color="primary" />
       </q-inner-loading>
@@ -44,6 +54,7 @@
     <div class="shadow-2s custom-footer">
       <ChatInput class="q-pa-xs" @message-sent="animateScroll" @isTyping="chatStore.whisperIsTyping(authStore.user.name)" />
     </div>
+    <FileDialog />
   </q-page>
 </template>
 
@@ -51,6 +62,7 @@
 import { watchArray } from '@vueuse/core'
 
 import Header from "../components/Chat/Header.vue";
+import FileDialog from "../components/Chat/ChatFileDialog.vue";
 
 import { onMounted, ref, nextTick, onUnmounted } from "vue";
 import ChatInput from '../components/Chat/ChatInput.vue'
@@ -71,12 +83,12 @@ const chatStore = useChatStore()
 const chatBox = ref(null)
 
 const animateScroll = async () => {
-  if (!chatBox.value) return;
-  await nextTick(); // Ensure that the DOM is updated
-  const scrollTarget = chatBox.value.getScrollTarget();
-  const scrollHeight = scrollTarget.scrollHeight;
-  chatBox.value.setScrollPosition('vertical', scrollHeight, 0);
-  // chatBox.value.setScrollPosition('vertical', scrollHeight, 150);
+  if (!chatBox.value) return
+  await nextTick() // Ensure that the DOM is updated
+  const scrollTarget = chatBox.value.getScrollTarget()
+  const scrollHeight = scrollTarget.scrollHeight
+  chatBox.value.setScrollPosition('vertical', scrollHeight, 0)
+  // chatBox.value.setScrollPosition('vertical', scrollHeight, 150)
 }
 
 const goBack = () => {
@@ -85,18 +97,21 @@ const goBack = () => {
 
 const formattedMessage = (val) => {
   // Konvertiere Zeilenumbrüche in HTML <br> Tags
-  return val.replace(/\n/g, '<br>');
-};
-const showMore = ref(false);
-const toggleShowMore = () => {
-  showMore.value = !showMore.value;
-};
-const isLongText = (val) => {
-  const lineCount = val.split('\n').length;
-  return lineCount > 5;
-};
+  if(!val) return
+  return val.replace(/\n/g, '<br>')
+}
 
-import { echo } from "../boot/echo";
+const showMore = ref(false)
+const toggleShowMore = () => {
+  showMore.value = !showMore.value
+}
+
+const isLongText = (val) => {
+  if(!val) return
+  const lineCount = val.split('\n').length
+  return lineCount > 5
+}
+
 
 onMounted(async () => {
   if(!chatStore.currentChat.messages?.length){
@@ -115,18 +130,24 @@ onMounted(async () => {
   }
 
   await animateScroll()
-  
 })
+
+const onScroll = (info) => {
+  if(info.verticalPosition == 0) {
+    chatStore.loadMoreShowingIteration++
+    if(chatStore.loadMoreShowingIteration > 0){
+      chatStore.loadMoreShowing = true
+      console.log("VERTICAL POSITION == 0 !!!!", chatStore.loadMoreShowingIteration)
+    }
+  }
+  // done()
+}
 
 onUnmounted(() => {
   console.log("unmounted")
   chatStore.setCurrentChat(null)
+  chatStore.loadMoreShowing = false
 })
-
-const onLoad = (index, done) => {
-  console.log("onLoad fired")
-  // done()
-}
 </script>
 
 <style>

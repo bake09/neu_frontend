@@ -56,6 +56,11 @@ const routes = [
         component: () => import('pages/ChatPage.vue'),
         name: 'chat'
       },
+      { 
+        path: '/infinity', 
+        component: () => import('pages/InfinityPage.vue'),
+        name: 'infinity'
+      },
     ]
   },
   // Always leave this as last one,

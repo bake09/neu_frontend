@@ -60,6 +60,13 @@ export const useSettingsStore = defineStore('settings', () => {
         icon: 'logout',
         authRequired: true
       },
+      {
+        id: 8,
+        label: 'Infinity',
+        route: '/infinity',
+        icon: 'infinity',
+        authRequired: true
+      },
     ])
     const thumbStyle = ref({
       right: '4px',

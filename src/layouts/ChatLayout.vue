@@ -50,7 +50,7 @@ onUnmounted(() => {
   background-color: transparent !important;
 }
 body {
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 .q-scroll-area-custom {
   display: flex;
