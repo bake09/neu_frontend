@@ -1,109 +1,62 @@
 <template>
-  <q-page class="absolute full-width full-height column "> 
-    <q-scroll-area
-      class="q-scroll-area-custom"
-      :thumb-style="settingsStore.thumbStyle"
-      :bar-style="settingsStore.barStyle"
-      ref="chatBox">
-      <q-infinite-scroll @load="onLoad" reverse>
-        <template v-slot:loading>
-          <div class="row justify-center q-my-md">
-            <q-spinner color="primary" name="dots" size="40px" />
-          </div>
-        </template>
-
-        <!-- <div v-for="(item, index) in items" :key="index" class="caption q-py-sm" >
-          <q-badge class="shadow-1">
-            {{ items.length - index }}
-          </q-badge>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum repellendus sit voluptate voluptas eveniet porro. Rerum blanditiis perferendis totam, ea at omnis vel numquam exercitationem aut, natus minima, porro labore.
-        </div> -->
-
-        <span
+  <q-page class="absolute full-width full-height">
+  <q-btn label="loadMore"/>
+    <div ref="scrollTargetRef" class="q-pa-md scroll" style="max-height: 250px; overflow: auto;">
+      <q-infinite-scroll @load="onLoadRef" :offset="250" :scroll-target="scrollTargetRef" reverse>
+        <!-- <div v-for="(item, index) in itemsRef" :key="index" class="caption"> -->
+        <div
           v-if="chatStore.currentChat"
           v-for="message in chatStore.currentChat.messages"
           :key="message.id">
-          <q-chat-message
-            :name="message.user.name"
-            avatar="https://cdn.quasar.dev/img/avatar4.jpg"
-            :sent="authStore.user.id == message.user.id ? true : false"
-            :bg-color="authStore.user.id == message.user.id ? 'grey-2 shadow-6' : 'green-2 shadow-6'"
-            class="q-px-sm"
-            >
-            <div class="flex">
-              <q-item-label>
-                <div :class="{ 'text-collapsed': !showMore }" v-html="formattedMessage(message.content)"></div>
-                <q-btn v-if="isLongText(message.content)" flat size="md" @click="toggleShowMore">
-                  {{ showMore ? 'Weniger' : 'Mehr' }}
-                </q-btn>
-              </q-item-label>
-              <div class="timestamp">{{ message.created_at_time }}
-                <q-icon name="check" style="font-size: 14px;"/>
-                <q-icon name="done_all"  style="font-size: 14px;"/>
-              </div>
-            </div>
-          </q-chat-message>
-        </span>
-      </q-infinite-scroll>
-    </q-scroll-area>
-
-    <!-- <q-infinite-scroll @load="onLoad" reverse>
-      <template v-slot:loading>
-        <div class="row justify-center q-my-md">
-          <q-spinner color="primary" name="dots" size="40px" />
+          <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+            Rerum repellendus sit voluptate voluptas eveniet porro. 
+            Rerum blanditiis perferendis totam, ea at omnis vel numquam 
+            exercitationem aut, natus minima, porro labore.
+          </p>
         </div>
-      </template>
-
-      <div v-for="(item, index) in items" :key="index" class="caption q-py-sm">
-        <q-badge class="shadow-1">
-          {{ items.length - index }}
-        </q-badge>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum repellendus sit voluptate voluptas eveniet porro. Rerum blanditiis perferendis totam, ea at omnis vel numquam exercitationem aut, natus minima, porro labore.
-      </div>
-    </q-infinite-scroll> -->
+        <template v-slot:loading>
+          <div class="row justify-center q-my-md">
+            <q-spinner-dots color="primary" size="40px" />
+          </div>
+        </template>
+      </q-infinite-scroll>
+    </div>
   </q-page>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 
-const chatBox = ref(null)
-const scrollTargetRef = ref(null)
+import { scroll } from 'quasar'
+const { getScrollTarget } = scroll
 
-const items = ref([ {}, {}, {}, {}, {}, {}, {} ])
-const onLoad = (index, done) => {
-  setTimeout(() => {
-    items.value.splice(0, 0, {}, {}, {}, {}, {}, {}, {})
-    done()
-  }, 2000)
-}
-
-
-import { useSettingsStore } from "stores/settings-store";
-const settingsStore = useSettingsStore()
-
+import { useRoute, useRouter } from "vue-router";
+const route = useRoute()
+const router = useRouter()
 
 import { useChatStore } from "stores/chat-store";
 const chatStore = useChatStore()
 
+const itemsRef = ref([ {}, {}, {}, {}, {}, {}, {} ])
+const scrollTargetRef = ref(null)
 
-
-let scrollIteration = ref(-1)
-const onScroll = (info) => {
-  if(info.verticalPosition == 0) {
-    scrollIteration.value++
-    if(scrollIteration.value > 0){
-      chatStore.loadMoreShowing = true
-      console.log("VERTICAL POSITION == 0 !!!!", scrollIteration.value)
-    }
-  }
-  // done()
+const onLoadRef = async (index, done) => {
+  console.log("onLoad triggered")
+  // setTimeout(() => {
+  //   itemsRef.value.push({}, {}, {}, {}, {}, {}, {})
+  //   done()
+  // }, 2000)
+  await chatStore.loadMoreMessages('9cf3b300-c52f-40af-946e-8e31433d6e4d')
+  done()
 }
 
 onMounted(async () => {
   console.log("onMounted triggered")
-  await chatStore.getSingleChat('9ce34295-8264-4c38-b4db-f3c6e67e5a75')
-  // await chatStore.getSingleChat(route.params.id)
+  
+  if(!chatStore.currentChat.messages?.length){
+    await chatStore.getSingleChat('9cf3b300-c52f-40af-946e-8e31433d6e4d')
+  }
 })
 
 

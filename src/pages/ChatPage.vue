@@ -3,16 +3,18 @@
 
     <Header />
 
-    <div class="absolute full-width full-height column q-pb-xl">
+    <div class="absolute fit column q-pb-xl">
       <q-scroll-area
-        class="q-scroll-area-custom"
+        class="fit q-px-xs"
         :thumb-style="settingsStore.thumbStyle"
         :bar-style="settingsStore.barStyle"
         ref="chatBox"
         @scroll="onScroll">
-          <div class="flex flex-center" v-show="chatStore.loadMoreShowing" style="height: 40px;">
-            <q-spinner-dots color="primary" size="40px" />
-          </div>
+
+        <div class="flex flex-center" style="height: 40px;" v-show="!chatStore.isLastPage" >
+          <q-spinner-dots color="primary" size="40px" v-show="chatStore.loadMoreShowing" />
+        </div>
+        
         <span
           v-if="chatStore.currentChat"
           v-for="message in chatStore.currentChat.messages"
@@ -21,34 +23,42 @@
             :name="message.user.name"
             avatar="https://cdn.quasar.dev/img/avatar4.jpg"
             :sent="authStore.user.id == message.user.id ? true : false"
-            :bg-color="authStore.user.id == message.user.id ? 'grey-2 shadow-6' : 'green-2 shadow-6'"
+            :bg-color="authStore.user.id == message.user.id ? 'grey-2 shadow-3' : 'green-2 shadow-3'"
             class="q-px-sm"
             >
-            <div class="flex" :style="message.image_url ? 'min-width: 35vw;' : ''">
-              <q-img 
-                v-if="message.image_url"
-                :src="message.image_url"
-                height="80px"
-                /> 
-              <q-item-label class="q-mt-xs">
+            <q-card class="bg-transparent q-pa-none relative-position" flat :style="message.image_url ? 'min-width: 35vw;' : 'max-width: 35vw;'">
+              <q-card-section class="q-pa-none" v-if="message.image_url">
+                <q-img 
+                  
+                  :src="message.image_url"
+                  height="80px"
+                  class="q-mb-sm"
+                  /> 
+              </q-card-section>
+
+              <q-card-section class="q-pa-none">
                 <div :class="{ 'text-collapsed': !showMore }" v-html="formattedMessage(message.content)"></div>
                 <q-btn v-if="isLongText(message.content)" flat size="md" @click="toggleShowMore">
                   {{ showMore ? 'Weniger' : 'Mehr' }}
                 </q-btn>
-              </q-item-label>
-              <q-space />
-              <div class="timestamp">
-                <span>{{ message.created_at_time }}</span>
-                <q-icon name="check" style="font-size: 14px;"/>
-                <q-icon name="done_all"  style="font-size: 14px;"/>
-              </div>
-            </div>
+              </q-card-section>
+              
+              <q-card-section class="q-pa-none" >
+                <div class="timestamp">
+                  <span>{{ message.created_at_time }}</span>
+                  <q-icon name="check" style="font-size: 14px;"/>
+                  <q-icon name="done_all"  style="font-size: 14px;"/>
+                </div>
+              </q-card-section>
+            </q-card>
           </q-chat-message>
         </span>
       </q-scroll-area>
+
       <q-inner-loading :showing="chatStore.chatIsLoading">
         <q-spinner-gears size="50px" color="primary" />
       </q-inner-loading>
+
     </div>
     
     <div class="shadow-2s custom-footer">
@@ -69,7 +79,6 @@ import ChatInput from '../components/Chat/ChatInput.vue'
 
 import { useRoute, useRouter } from "vue-router";
 const route = useRoute()
-const router = useRouter()
 
 import { useSettingsStore } from "stores/settings-store";
 const settingsStore = useSettingsStore()
@@ -82,17 +91,22 @@ const chatStore = useChatStore()
 
 const chatBox = ref(null)
 
-const animateScroll = async () => {
+const animateScroll = async (direction = null) => {
   if (!chatBox.value) return
-  await nextTick() // Ensure that the DOM is updated
+  // await nextTick() // Ensure that the DOM is updated
   const scrollTarget = chatBox.value.getScrollTarget()
   const scrollHeight = scrollTarget.scrollHeight
-  chatBox.value.setScrollPosition('vertical', scrollHeight, 0)
+  
+  if(direction == "up"){
+    chatBox.value.setScrollPosition('vertical', 41, 0)
+    await nextTick()
+    chatStore.loadingMoreMessages = false
+  }else{
+    chatBox.value.setScrollPosition('vertical', scrollHeight, 0)
+    await nextTick()
+    chatStore.loadingMoreMessages = false
+  }
   // chatBox.value.setScrollPosition('vertical', scrollHeight, 150)
-}
-
-const goBack = () => {
-  router.replace('/chats')
 }
 
 const formattedMessage = (val) => {
@@ -112,41 +126,56 @@ const isLongText = (val) => {
   return lineCount > 5
 }
 
-
 onMounted(async () => {
   if(!chatStore.currentChat.messages?.length){
     await chatStore.getSingleChat(route.params.id)
-
-    watchArray(chatStore.currentChat.messages, async (newList, oldList, added, removed) => {
-      // console.log("newList : ", newList.length) // [1, 2, 3, 4]
-      // console.log("oldList : ", oldList.length) // [1, 2, 3]
-      // console.log("added : ", added) // [4]
-      // console.log("removed : ", removed) // []
-
-      if(newList.length > oldList.length){
-        await animateScroll()
-      }
-    })
+    await nextTick()
+    await animateScroll("down")
   }
-
-  await animateScroll()
+  
+  watchArray(chatStore.currentChat.messages, async (newList, oldList, added, removed) => {
+    // console.log("newList : ", newList.length) // [1, 2, 3, 4]
+    // console.log("oldList : ", oldList.length) // [1, 2, 3]
+    // console.log("added : ", added) // [4]
+    // console.log("removed : ", removed) // []
+    
+    if(newList.length > oldList.length){
+      await nextTick()
+      if(chatStore.loadingMoreMessages){
+        return await animateScroll("up")
+      }else{
+        return await animateScroll("down")
+      }
+    }
+  })
+  
+  // await animateScroll()
 })
 
-const onScroll = (info) => {
-  if(info.verticalPosition == 0) {
+const onScroll = async (info) => {
+  // console.log("info : ", info)
+  // console.log("chatStore.loadMoreShowing : ", chatStore.loadMoreShowing)
+  if(info.verticalPercentage == 0) {
     chatStore.loadMoreShowingIteration++
-    if(chatStore.loadMoreShowingIteration > 0){
-      chatStore.loadMoreShowing = true
-      console.log("VERTICAL POSITION == 0 !!!!", chatStore.loadMoreShowingIteration)
+    chatStore.loadMoreShowing = true
+    if((chatStore.loadMoreShowingIteration) > 0 && (chatStore.loadMoreShowing)) {
+      if(!chatStore.isLastPage){
+        await chatStore.loadMoreMessages()
+        chatStore.loadMoreShowing = false
+      }
+    }
+  }else{
+    if(!chatStore.loadMoreShowing){
+      chatStore.loadMoreShowing = false
     }
   }
-  // done()
 }
 
 onUnmounted(() => {
   console.log("unmounted")
   chatStore.setCurrentChat(null)
   chatStore.loadMoreShowing = false
+  chatStore.loadingMoreMessages = false
 })
 </script>
 
@@ -162,14 +191,13 @@ onUnmounted(() => {
 }
 
 .timestamp{
-  color: grey;
-  font-size: 0.8em;
-  padding-top: 8px;
   padding-left: 4px;
   margin-bottom: -6px;
   margin-right: -4px;
   text-align: right;
   align-self: flex-end;
+  color: grey;
+  font-size: 0.8em;
 }
 
 .text-collapsed {

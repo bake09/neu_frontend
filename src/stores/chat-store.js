@@ -19,14 +19,23 @@ export const useChatStore = defineStore('chat', () => {
   const chatIsLoading = ref(false)
   const activeChannels = ref([])
   const newMessage = ref('')
-  const loadMoreShowingIteration = ref(-1)
+
+  const loadingMoreMessages = ref(false)
+
   const loadMoreShowing = ref(false)
+  const loadMoreShowingIteration = ref(-1)
+
   const showAttachmentDialog = ref(false)
   const showFileDialog = ref(false)
 
   const selectedImage = ref(null)
   const selectedImageUrl = ref(null)
   const selectedImageRatio = ref(null)
+
+  const vapidKeys = ref({
+    public: 'BKneabAy3ho7u9AjgrRH7RXGs77SKinBg4AEWEKGiVp-fVjBq-RdV5Gz3g8MO1lmFYQlWYlSOp68aFmzKV5oWBI',
+    private: '6O4xHEx0JPw7qPqI0Gc7LGFPtN1mo3yyrUXJrZ7lZDo'
+  })
 
   // watch showFileDialog to Clear on Close
   watch(showFileDialog, () => {
@@ -37,12 +46,16 @@ export const useChatStore = defineStore('chat', () => {
     }
   })
 
-  const vapidKeys = ref({
-    public: 'BKneabAy3ho7u9AjgrRH7RXGs77SKinBg4AEWEKGiVp-fVjBq-RdV5Gz3g8MO1lmFYQlWYlSOp68aFmzKV5oWBI',
-    private: '6O4xHEx0JPw7qPqI0Gc7LGFPtN1mo3yyrUXJrZ7lZDo'
-  })
-
   // Getters
+  const isLastPage = computed(() => {
+    if(currentChat.value){
+      if(currentChat.value.meta?.current_page < currentChat.value.meta?.last_page){
+        return false
+      }
+      return true
+    }
+    return false
+  })
   const getMessages = computed(() => {
     return currentChat.value ? currentChat.value.messages : []
   })
@@ -63,6 +76,9 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
   async function setCurrentChat(chat){
+    if(chat == null){
+      loadMoreShowingIteration.value = -1
+    }
     currentChat.value = chat
     LocalStorage.setItem('currentChat', chat)
     clearUnreadMessagesLocally()
@@ -73,11 +89,32 @@ export const useChatStore = defineStore('chat', () => {
       const res = await api.get(`/chat/${id}`)
       console.log("res : ", res)
       console.log("res.data.messages.data : ", res.data.messages.data)
-      currentChat.value.messages = res.data.messages.data
+      // currentChat.value.messages = res.data.messages.data
+      currentChat.value.messages = []
+      res.data.messages.data.forEach(message => {
+        currentChat.value.messages.unshift(message)  // Fügt die Nachricht an den Anfang der Liste hinzu
+      })
+      currentChat.value.meta = res.data.messages.meta_data
     } catch (err) {
       console.log(err)
     } finally {
       chatIsLoading.value = false
+    }
+  }
+  async function loadMoreMessages() {
+    console.log("loadMoreMessages CALLED")
+    loadingMoreMessages.value = true
+    try {
+      const res = await api.get(currentChat.value.meta.next_page_url)
+      console.log("NEXT PAGE res : ", res)
+      res.data.messages.data.forEach(message => {
+        currentChat.value.messages.unshift(message) 
+      })
+      currentChat.value.meta = res.data.messages.meta_data
+    } catch (err) {
+      console.log(err)
+    } finally {
+      // loadingMoreMessages.value = false
     }
   }
   async function addMessage() {
@@ -107,7 +144,7 @@ export const useChatStore = defineStore('chat', () => {
       })
 
       // Erfolgreich gesendete Nachricht lokal hinzufügen
-      console.log("res : ", res)
+      // console.log("res : ", res)
       newMessage.value = ''
       selectedImage.value = null
       selectedImageUrl.value = null
@@ -155,12 +192,12 @@ export const useChatStore = defineStore('chat', () => {
       }
     }
   }
-  const slicedChatId = (chatId) => {
+  const slicedChatId = (chatId = null) => {
     
-    if(chats.value.length > 0){
+    if(chats.value?.length > 0){
       return chatId.slice(-4)
     }
-    else if(currentChat.value.id){
+    else if(currentChat.value?.id){
       return chatId.slice(-4)
     }
     else{
@@ -264,12 +301,13 @@ export const useChatStore = defineStore('chat', () => {
   return {
     // State 
     chats,
-    currentChat,
     chatsIsLoading,
     chatIsLoading,
+    loadingMoreMessages,
+    currentChat,
     newMessage,
-    activeChannels,
-    vapidKeys,
+    // activeChannels,
+    // vapidKeys, 
     loadMoreShowing,
     loadMoreShowingIteration,
     showAttachmentDialog,
@@ -279,6 +317,7 @@ export const useChatStore = defineStore('chat', () => {
     selectedImageRatio,
 
     // Getters
+    isLastPage,
     getMessages,
 
     // Actions
@@ -296,6 +335,7 @@ export const useChatStore = defineStore('chat', () => {
     stopListenForMessagesInAllChats,
     whisperIsTyping,
     handleImageUpload,
+    loadMoreMessages,
 
   }
 })

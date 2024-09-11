@@ -3,9 +3,9 @@
 
     <Header />
 
-    <div class="absolute full-width full-height column">
+    <div class="absolute fit column">
       <q-scroll-area
-        class="q-scroll-area-custom"
+        class="fit"
         :thumb-style="settingsStore.thumbStyle"
         :bar-style="settingsStore.barStyle"
         ref="chatsBox">

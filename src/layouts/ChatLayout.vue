@@ -27,33 +27,26 @@ import { useChatStore } from "stores/chat-store";
 const chatStore = useChatStore()
 
 onMounted(async () => {
-  // console.log("mounted ChatLayout.vue")
   if(!chatStore.chats.length){
     await chatStore.getAllChats()
   }
   chatStore.listenForMessagesInAllChats()
   
 })
+
 onUnmounted(() => {
-  // console.log("unmounted ChatLayout.vue")
   chatStore.stopListenForMessagesInAllChats()
 })
 </script>
 
 <style>
-.background {
-  background-image: url('/background.png');
-  background-size: cover;
-}
-
-.bg-transparent2{
-  background-color: transparent !important;
-}
 body {
   /* overflow: hidden; */
 }
-.q-scroll-area-custom {
-  display: flex;
-  flex-grow: 1;
+
+.background {
+  background-image: url('/background.png');
+  background-size: contain;
+  background-repeat: repeat;
 }
 </style>

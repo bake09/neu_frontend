@@ -6,8 +6,8 @@
 
       <q-item clickable v-ripple class="col text-white q-px-sm ">
         <q-item-section >
-          <q-item-label class="top-distance text-bold"> {{ chatStore.currentChat.name }} {{ chatStore.slicedChatId(chatStore.currentChat.id) }}</q-item-label>
-          <q-item-label caption class="bottom-distance text-white" v-if="chatStore.currentChat?.isTyping">{{ chatStore.currentChat.isTyping }}</q-item-label>
+          <q-item-label class="top-distance text-bold"> {{ chatStore.currentChat?.name }} {{ chatStore.slicedChatId(chatStore.currentChat?.id) }}</q-item-label>
+          <q-item-label caption class="bottom-distance text-white" v-if="chatStore.currentChat?.isTyping">{{ chatStore.currentChat?.isTyping }}</q-item-label>
           <q-item-label caption class="bottom-distance text-white" v-else >zuletzt Online: 01.01.2024</q-item-label>
         </q-item-section>
       </q-item>
