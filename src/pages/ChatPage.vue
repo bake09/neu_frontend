@@ -69,15 +69,14 @@
 </template>
 
 <script setup>
+import { onMounted, ref, nextTick, onUnmounted } from "vue";
 import { watchArray } from '@vueuse/core'
 
+import ChatInput from '../components/Chat/ChatInput.vue'
 import Header from "../components/Chat/Header.vue";
 import FileDialog from "../components/Chat/ChatFileDialog.vue";
 
-import { onMounted, ref, nextTick, onUnmounted } from "vue";
-import ChatInput from '../components/Chat/ChatInput.vue'
-
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 const route = useRoute()
 
 import { useSettingsStore } from "stores/settings-store";
@@ -126,35 +125,7 @@ const isLongText = (val) => {
   return lineCount > 5
 }
 
-onMounted(async () => {
-  if(!chatStore.currentChat.messages?.length){
-    await chatStore.getSingleChat(route.params.id)
-    await nextTick()
-    await animateScroll("down")
-  }
-  
-  watchArray(chatStore.currentChat.messages, async (newList, oldList, added, removed) => {
-    // console.log("newList : ", newList.length) // [1, 2, 3, 4]
-    // console.log("oldList : ", oldList.length) // [1, 2, 3]
-    // console.log("added : ", added) // [4]
-    // console.log("removed : ", removed) // []
-    
-    if(newList.length > oldList.length){
-      await nextTick()
-      if(chatStore.loadingMoreMessages){
-        return await animateScroll("up")
-      }else{
-        return await animateScroll("down")
-      }
-    }
-  })
-  
-  // await animateScroll()
-})
-
 const onScroll = async (info) => {
-  // console.log("info : ", info)
-  // console.log("chatStore.loadMoreShowing : ", chatStore.loadMoreShowing)
   if(info.verticalPercentage == 0) {
     chatStore.loadMoreShowingIteration++
     chatStore.loadMoreShowing = true
@@ -170,6 +141,25 @@ const onScroll = async (info) => {
     }
   }
 }
+
+onMounted(async () => {
+  if(!chatStore.currentChat.messages?.length){
+    await chatStore.getSingleChat(route.params.id)
+    await nextTick()
+    await animateScroll("down")
+  }
+  
+  watchArray(chatStore.currentChat.messages, async (newList, oldList, added, removed) => {
+    if(newList.length > oldList.length){
+      await nextTick()
+      if(chatStore.loadingMoreMessages){
+        return await animateScroll("up")
+      }else{
+        return await animateScroll("down")
+      }
+    }
+  })
+})
 
 onUnmounted(() => {
   console.log("unmounted")
