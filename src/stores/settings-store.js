@@ -11,20 +11,20 @@ export const useSettingsStore = defineStore('settings', () => {
         icon: 'home',
         authRequired: true
       },
-      {
-        id: 2,
-        label: 'Tasks',
-        route: '/tasks',
-        icon: 'list',
-        authRequired: true
-      },
-      {
-        id: 3,
-        label: 'Users',
-        route: '/users',
-        icon: 'group',
-        authRequired: true
-      },
+      // {
+      //   id: 2,
+      //   label: 'Tasks',
+      //   route: '/tasks',
+      //   icon: 'list',
+      //   authRequired: true
+      // },
+      // {
+      //   id: 3,
+      //   label: 'Users',
+      //   route: '/users',
+      //   icon: 'group',
+      //   authRequired: true
+      // },
       {
         id: 4,
         label: 'Chats',
@@ -32,13 +32,13 @@ export const useSettingsStore = defineStore('settings', () => {
         icon: 'group',
         authRequired: true
       },
-      {
-        id: 5,
-        label: 'UsersList',
-        route: '/userslist',
-        icon: 'group',
-        authRequired: true
-      },
+      // {
+      //   id: 5,
+      //   label: 'UsersList',
+      //   route: '/userslist',
+      //   icon: 'group',
+      //   authRequired: true
+      // },
       {
         id: 6,
         label: 'Login',
@@ -60,11 +60,18 @@ export const useSettingsStore = defineStore('settings', () => {
         icon: 'logout',
         authRequired: true
       },
+      // {
+      //   id: 8,
+      //   label: 'Infinity',
+      //   route: '/infinity',
+      //   icon: 'infinity',
+      //   authRequired: true
+      // },
       {
-        id: 8,
-        label: 'Infinity',
-        route: '/infinity',
-        icon: 'infinity',
+        id: 9,
+        label: 'Profile',
+        route: '/profile',
+        icon: 'profile',
         authRequired: true
       },
     ])

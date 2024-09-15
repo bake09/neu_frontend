@@ -45,5 +45,6 @@ import { useSettingsStore } from "stores/settings-store";
 const settingsStore = useSettingsStore()
 
 const avatar = ref(`http://${process.env.VUE_APP_SERVER_IP}:8000/avatars/avatar2.png`)
+// const avatar = ref(`https://${process.env.VUE_APP_SERVER_IP}/avatars/avatar2.png`)
 
 </script>

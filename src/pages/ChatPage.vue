@@ -28,8 +28,7 @@
             >
             <q-card class="bg-transparent q-pa-none relative-position" flat :style="message.image_url ? 'min-width: 35vw;' : 'max-width: 35vw;'">
               <q-card-section class="q-pa-none" v-if="message.image_url">
-                <q-img 
-                  
+                <q-img
                   :src="message.image_url"
                   height="80px"
                   class="q-mb-sm"
@@ -145,6 +144,9 @@ const onScroll = async (info) => {
 onMounted(async () => {
   if(!chatStore.currentChat.messages?.length){
     await chatStore.getSingleChat(route.params.id)
+    await nextTick()
+    await animateScroll("down")
+  }else{
     await nextTick()
     await animateScroll("down")
   }

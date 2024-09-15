@@ -81,7 +81,7 @@ const inputWrapper = ref(null)
 const inputWidth = ref('')
 
 onMounted(() => {
-  console.log("inputWrapper : ", inputWrapper.value.offsetWidth)
+  // console.log("inputWrapper : ", inputWrapper.value.offsetWidth)
   inputWidth.value = inputWrapper.value.offsetWidth
 })
 

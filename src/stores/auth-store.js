@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { api } from "boot/axios";
 import { LocalStorage, Notify } from 'quasar'
 
@@ -15,6 +15,19 @@ export const useAuthStore = defineStore('auth', () => {
     label: ''
   })
   const token = ref(LocalStorage.getItem('token') || null)
+  const selectedImage = ref(null)
+  const selectedImageUrl = ref(null)
+  const selectedImageRatio = ref(null)
+  
+  // getters
+  const getProfileImage = computed(() => {
+    if(selectedImageUrl.value){
+      return selectedImageUrl.value
+    }else{
+      return '/avatar.png'
+    }
+  })
+
 
   // Actions
   async function handleLogin () {
@@ -176,13 +189,58 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     this.router.replace('/login')
   }
+  const handleImageUpload = (event) => {
+    const target = event.target
+    const file = target.files?.[0]
 
+    if (file) {
+      selectedImage.value = file
+      selectedImageUrl.value = URL.createObjectURL(file)
+      
+      // Bild-Element erstellen, um das Verhältnis zu berechnen
+      const img = new Image()
+      img.src = URL.createObjectURL(file)
+      img.onload = () => {
+        const width = img.width
+        const height = img.height
+
+        // Berechne das Verhältnis
+        const aspectRatio = width / height;
+
+        // Standard-Verhältnisse und deren numerische Werte
+        const aspectRatios = {
+          '16/9': 16 / 9,
+          '4/3': 4 / 3,
+          '1/1': 1 / 1,
+          '3/4': 3 / 4,
+          '9/16': 9 / 16,
+        };
+
+        // Funktion zum Finden des am nächsten liegenden Verhältnisses
+        const closestRatio = Object.keys(aspectRatios).reduce((prev, curr) => {
+          return Math.abs(aspectRatios[curr] - aspectRatio) < Math.abs(aspectRatios[prev] - aspectRatio) ? curr : prev;
+        });
+
+        selectedImageRatio.value = closestRatio;
+      }
+    }
+  }
+  async function updateProfile () {
+    
+  }
+  // Return everything
   return {
     // State
     loginForm,
     user,
     isAuthProceeding,
     token,
+    selectedImage,
+    selectedImageUrl,
+    selectedImageRatio,
+
+    // Getters
+    getProfileImage,
 
     // Actions
     handleLogin,
@@ -190,6 +248,8 @@ export const useAuthStore = defineStore('auth', () => {
     handleLogout,
     clearUser,
     handleTokenLogin,
-    handleTokenLogout
+    handleTokenLogout,
+    handleImageUpload
+
   }
 })
