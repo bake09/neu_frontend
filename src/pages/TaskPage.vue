@@ -1,12 +1,12 @@
 <template>
   <q-page>
-    <!-- <q-header class="shadow-2">
+    <q-header class="shadow-2">
       <q-toolbar>
         <q-btn flat dense round icon="arrow_back" @click="goBack" />
         <q-toolbar-title>Tasks PAGE</q-toolbar-title>
       </q-toolbar>
-    </q-header> -->
-    <Header></Header>
+    </q-header>
+    <!-- <Header></Header> -->
     <div class="absolute full-width full-height column">
       <q-scroll-area
         class="q-scroll-area-custom"

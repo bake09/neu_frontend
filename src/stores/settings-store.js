@@ -11,13 +11,13 @@ export const useSettingsStore = defineStore('settings', () => {
         icon: 'home',
         authRequired: true
       },
-      // {
-      //   id: 2,
-      //   label: 'Tasks',
-      //   route: '/tasks',
-      //   icon: 'list',
-      //   authRequired: true
-      // },
+      {
+        id: 2,
+        label: 'Tasks',
+        route: '/tasks',
+        icon: 'list',
+        authRequired: true
+      },
       // {
       //   id: 3,
       //   label: 'Users',
@@ -61,32 +61,25 @@ export const useSettingsStore = defineStore('settings', () => {
         authRequired: true
       },
       // {
-      //   id: 8,
-      //   label: 'Infinity',
-      //   route: '/infinity',
-      //   icon: 'infinity',
+      //   id: 9,
+      //   label: 'Profile',
+      //   route: '/profile',
+      //   icon: 'manage_accounts',
       //   authRequired: true
       // },
-      {
-        id: 9,
-        label: 'Profile',
-        route: '/profile',
-        icon: 'profile',
-        authRequired: true
-      },
     ])
     const thumbStyle = ref({
-      right: '4px',
+      right: '2px',
       borderRadius: '5px',
       backgroundColor: '#027be3',
       width: '5px',
       opacity: 0.75
     })
     const barStyle = ref({
-      right: '2px',
+      right: '0px',
       borderRadius: '9px',
       backgroundColor: '#027be3',
-      width: '9px',
+      width: '6px',
       opacity: 0.2
     })
     const headerHeight = ref(null)

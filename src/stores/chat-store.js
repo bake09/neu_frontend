@@ -32,6 +32,9 @@ export const useChatStore = defineStore('chat', () => {
   const selectedImageUrl = ref(null)
   const selectedImageRatio = ref(null)
 
+  const showReplayBox = ref(false)
+  const inputWrapper = ref(null)
+
   const vapidKeys = ref({
     public: 'BKneabAy3ho7u9AjgrRH7RXGs77SKinBg4AEWEKGiVp-fVjBq-RdV5Gz3g8MO1lmFYQlWYlSOp68aFmzKV5oWBI',
     private: '6O4xHEx0JPw7qPqI0Gc7LGFPtN1mo3yyrUXJrZ7lZDo'
@@ -59,10 +62,16 @@ export const useChatStore = defineStore('chat', () => {
   const getMessages = computed(() => {
     return currentChat.value ? currentChat.value.messages : []
   })
+  const getUpScrollPosition = computed(() => {
+    if(!currentChat.value.scrollData.nextScrollHeight){
+      return currentChat.value.scrollData.prevScrollHeight
+    }else{
+      return currentChat.value.scrollData.nextScrollHeight - currentChat.value.scrollData.prevScrollHeight
+    }
+  })
 
   // Actions
   async function getAllChats() {
-    console.log("getAllChats fired")
     chats.value = []
     chatsIsLoading.value = true
     try {
@@ -78,23 +87,33 @@ export const useChatStore = defineStore('chat', () => {
   async function setCurrentChat(chat){
     if(chat == null){
       loadMoreShowingIteration.value = -1
-    }
-    currentChat.value = chat
-    LocalStorage.setItem('currentChat', chat)
-    clearUnreadMessagesLocally()
+      currentChat.value = chat;
+    }else {
+      // Erstellt oder hängt scrollData an das bestehende Chat-Objekt an
+      chat.scrollData = {
+          scrollPos: 0,
+          prevScrollHeight: 0,
+          nextScrollHeight: 0,
+      }
+      currentChat.value = chat
+      LocalStorage.setItem('currentChat', chat)
+      clearUnreadMessagesLocally()
+  }
   }
   async function getSingleChat(id) {
     chatIsLoading.value = true
     try {
       const res = await api.get(`/chat/${id}`)
-      console.log("res : ", res)
-      console.log("res.data.messages.data : ", res.data.messages.data)
+      // console.log("res : ", res)
+      // console.log("res.data.messages.data : ", res.data.messages.data)
       // currentChat.value.messages = res.data.messages.data
       currentChat.value.messages = []
       res.data.messages.data.forEach(message => {
         currentChat.value.messages.unshift(message)  // Fügt die Nachricht an den Anfang der Liste hinzu
       })
       currentChat.value.meta = res.data.messages.meta_data
+      
+      LocalStorage.setItem('currentChat', currentChat.value)
     } catch (err) {
       console.log(err)
     } finally {
@@ -166,11 +185,12 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
   function addMessageLocallyToUnreadArray(message) {
-    const chat = chats.value.find(item => item.id === message.chatId);
+    const chat = chats.value.find(item => item.id === message.chatId)
     if (chat) {
-      chat.unreadMessages.push(message.message);
+      console.log("addMessageLocallyToUnreadArray message : ", message)
+      chat.unreadMessages.push(message.message)
     } else {
-      console.warn(`Chat with ID ${message.chatId} not found`);
+      console.warn(`Chat with ID ${message.chatId} not found`)
     }
 
     // updateTheCurrentLastMessage
@@ -229,6 +249,7 @@ export const useChatStore = defineStore('chat', () => {
             addMessageLocally(payload.message)
           }
           if(route.name == "chats"){
+            console.log("chat : ", payload)
             addMessageLocallyToInactiveChat(payload)
             addMessageLocallyToUnreadArray(payload)
           }
@@ -296,6 +317,19 @@ export const useChatStore = defineStore('chat', () => {
       showFileDialog.value = true
     }
   }
+  const setScrollData = (pos) => {
+    console.log('pos :>> ', pos);
+    if(!currentChat.value.scrollData.prevScrollHeight){
+      currentChat.value.scrollData.prevScrollHeight = pos
+    }else{
+      if(!currentChat.value.scrollData.nextScrollHeight){
+        currentChat.value.scrollData.nextScrollHeight = pos
+      }else{
+        currentChat.value.scrollData.prevScrollHeight = currentChat.value.scrollData.nextScrollHeight
+        currentChat.value.scrollData.nextScrollHeight = pos
+      }
+    }
+  }
 
   // Return everything
   return {
@@ -315,10 +349,14 @@ export const useChatStore = defineStore('chat', () => {
     selectedImage,
     selectedImageUrl,
     selectedImageRatio,
+    showReplayBox,
+    // scrollData,
+    inputWrapper,
 
     // Getters
     isLastPage,
     getMessages,
+    getUpScrollPosition,
 
     // Actions
     getAllChats,
@@ -336,6 +374,7 @@ export const useChatStore = defineStore('chat', () => {
     whisperIsTyping,
     handleImageUpload,
     loadMoreMessages,
+    setScrollData,
 
   }
 })

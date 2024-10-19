@@ -1,32 +1,52 @@
 <template>
-  <q-page>
+  <page>
+    <page-header>
+      <template #buttons-left>
+        <!-- <page-header-btn-back /> -->
+      </template>
+      <template #title>
+        <div class="row fit">
+          <div class="self-center q-pl-sm text-h5 text-weight-bolder">
+            Chats
+          </div>
+        </div>
+      </template>
+      <template #buttons-right>
+        <div class="page-header-btn-right absolute-bottom-right q-mb-xs q-mr-xs">
+          <page-header-btn-right />
+        </div>
+      </template>
+    </page-header>
 
-    <Header />
-
-    <div class="absolute fit column">
+    <page-body>
+        <!-- :thumb-style="settingsStore.thumbStyle"
+        :bar-style="settingsStore.barStyle" -->
       <q-scroll-area
-        class="fit"
-        :thumb-style="settingsStore.thumbStyle"
-        :bar-style="settingsStore.barStyle"
+        style="height: calc(100vh - 150px);"
         ref="chatsBox">
         <q-list v-if="!chatStore.chats.length">
           <ItemSkeleton v-for="i in 7" :key="i"/>
         </q-list>
         <q-list>
-          <ChatItem v-for="chat in chatStore.chats" :key="chat.id" :chat="chat"/>
+          <ChatItem v-for="chat in chatStore.chats" :key="chat.id" :chat="chat" />
         </q-list>
       </q-scroll-area>
-    </div>
-
-    <!-- <router-view /> -->
-  
-    </q-page>
+      
+      <!-- <q-footer>
+        <q-tabs
+          indicator-color="yellow"
+          class="bg-primary text-white shadow-2"
+        >
+          <q-route-tab to="/profile" icon="person" label="Profile" />
+          <q-route-tab to="/chat/chats" icon="alarm" label="Chat" />
+        </q-tabs>
+      </q-footer> -->
+    </page-body>
+  </page>
 </template>
 
 <script setup>
-import Header from "../components/Chat/Header.vue";
-
-import { onMounted, ref, onUnmounted, } from "vue";
+import { onMounted, ref, onActivated } from "vue";
 
 import { useMeta } from 'quasar'
 
@@ -35,15 +55,6 @@ import ItemSkeleton from '../components/ItemSkeleton.vue';
 
 import { useSettingsStore } from "stores/settings-store";
 const settingsStore = useSettingsStore()
-
-
-import { useRoute, useRouter } from "vue-router";
-const route = useRoute()
-const router = useRouter()
-
-const goBack = () => {
-  router.replace('/')
-}
 
 const metaData = {
   title: 'Chats Page',
@@ -67,7 +78,6 @@ const chatStore = useChatStore()
 const chatsBox = ref(null)
 
 onMounted(() => {
-  chatStore.setCurrentChat(null)
+  // chatStore.setCurrentChat(null)
 })
-
 </script>

@@ -1,180 +1,215 @@
 <template>
-  <q-page class="background">
-
-    <Header />
-
-    <div class="absolute fit column q-pb-xl">
-      <q-scroll-area
-        class="fit q-px-xs"
-        :thumb-style="settingsStore.thumbStyle"
-        :bar-style="settingsStore.barStyle"
-        ref="chatBox"
-        @scroll="onScroll">
-
-        <div class="flex flex-center" style="height: 40px;" v-show="!chatStore.isLastPage" >
-          <q-spinner-dots color="primary" size="40px" v-show="chatStore.loadMoreShowing" />
+  <page>
+    <page-header>
+      <template #buttons-left>
+        <page-header-btn-back />
+      </template>
+      <template #title>
+        <div class="row items-center fit q-ma-none q-pa-none">
+          <div class="fit">
+            <q-item clickable v-ripple class="q-px-sm" v-if="chatStore.currentChat">
+              <q-item-section>
+                <q-item-label class="text-bold">
+                  {{ chatStore.currentChat?.name }} {{ chatStore.slicedChatId(chatStore.currentChat?.id) }}
+                </q-item-label>
+                <q-item-label caption class="bottom-distance" v-if="chatStore.currentChat?.isTyping">
+                  {{ chatStore.currentChat?.isTyping }}
+                </q-item-label>
+                <q-item-label caption class="bottom-distance" v-else >
+                  zuletzt Online: 01.01.2024
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+            <!-- <div class="fit bg-yellow">
+              <div v-if="chatStore.currentChat">
+                {{ chatStore.currentChat?.name }} {{ chatStore.slicedChatId(chatStore.currentChat?.id) }}
+              </div>
+              <div v-if="chatStore.currentChat?.isTyping" class="text-bold">
+                {{ chatStore.currentChat?.isTyping }}
+              </div>
+              <div v-else class="text-bold">
+                zuletzt Online: 01.01.2024
+              </div>
+            </div> -->
+          </div>
         </div>
+      </template>
+      <template #buttons-right>
+        <div class="page-header-btn-right absolute-bottom-right q-mb-xs q-mr-xs">
+          <page-header-btn-right />
+        </div>
+      </template>
+    </page-header>
+
+    <page-body class="background">
+      <div class="relative-position fit">
+        <q-scroll-area
+          :thumb-style="settingsStore.thumbStyle"
+          :bar-style="settingsStore.barStyle"
+          style="height: calc(100% - 100px);"
+          ref="chatBox"
+          @scroll="onScroll"
+        >
+          <div class="flex flex-center" style="height: 40px;" v-show="!chatStore.isLastPage">
+            <q-spinner-dots color="primary" size="40px" v-show="chatStore.loadMoreShowing" />
+          </div>
+
+          <span
+            v-if="chatStore.currentChat"
+            v-for="message in chatStore.currentChat.messages"
+            :key="message.id"
+          >
+            <ChatMessage :message="message" :authStore="authStore" />
+          </span>
+        </q-scroll-area>
         
-        <span
-          v-if="chatStore.currentChat"
-          v-for="message in chatStore.currentChat.messages"
-          :key="message.id">
-          <q-chat-message
-            :name="message.user.name"
-            avatar="https://cdn.quasar.dev/img/avatar4.jpg"
-            :sent="authStore.user.id == message.user.id ? true : false"
-            :bg-color="authStore.user.id == message.user.id ? 'grey-2 shadow-3' : 'green-2 shadow-3'"
-            class="q-px-sm"
-            >
-            <q-card class="bg-transparent q-pa-none relative-position" flat :style="message.image_url ? 'min-width: 35vw;' : 'max-width: 35vw;'">
-              <q-card-section class="q-pa-none" v-if="message.image_url">
-                <q-img
-                  :src="message.image_url"
-                  height="80px"
-                  class="q-mb-sm"
-                  /> 
-              </q-card-section>
+        <div class="shadow-2s custom-footer">
+          <ChatInput class="q-pa-xs" @message-sent="animateScroll" @isTyping="chatStore.whisperIsTyping(authStore.user.name)" />
+        </div>
+      </div>
+    </page-body>
 
-              <q-card-section class="q-pa-none">
-                <div :class="{ 'text-collapsed': !showMore }" v-html="formattedMessage(message.content)"></div>
-                <q-btn v-if="isLongText(message.content)" flat size="md" @click="toggleShowMore">
-                  {{ showMore ? 'Weniger' : 'Mehr' }}
-                </q-btn>
-              </q-card-section>
-              
-              <q-card-section class="q-pa-none" >
-                <div class="timestamp">
-                  <span>{{ message.created_at_time }}</span>
-                  <q-icon name="check" style="font-size: 14px;"/>
-                  <q-icon name="done_all"  style="font-size: 14px;"/>
-                </div>
-              </q-card-section>
-            </q-card>
-          </q-chat-message>
-        </span>
-      </q-scroll-area>
 
-      <q-inner-loading :showing="chatStore.chatIsLoading">
+    <q-inner-loading :showing="chatStore.chatIsLoading">
         <q-spinner-gears size="50px" color="primary" />
       </q-inner-loading>
-
-    </div>
-    
-    <div class="shadow-2s custom-footer">
-      <ChatInput class="q-pa-xs" @message-sent="animateScroll" @isTyping="chatStore.whisperIsTyping(authStore.user.name)" />
-    </div>
     <FileDialog />
-  </q-page>
+  </page>
 </template>
 
 <script setup>
-import { onMounted, ref, nextTick, onUnmounted } from "vue";
-import { watchArray } from '@vueuse/core'
+import { onMounted, ref, nextTick, onUnmounted, watch, onDeactivated, onActivated } from "vue"
+import { watchArray } from "@vueuse/core"
 
-import ChatInput from '../components/Chat/ChatInput.vue'
-import Header from "../components/Chat/Header.vue";
-import FileDialog from "../components/Chat/ChatFileDialog.vue";
+import ChatInput from "../components/Chat/ChatInput.vue"
+import FileDialog from "../components/Chat/ChatFileDialog.vue"
+import ChatMessage from "../components/Chat/ChatMessage.vue"
 
-import { useRoute } from "vue-router";
+import { useRoute } from "vue-router"
 const route = useRoute()
 
-import { useSettingsStore } from "stores/settings-store";
+import { useSettingsStore } from "stores/settings-store"
 const settingsStore = useSettingsStore()
 
-import { useAuthStore } from "stores/auth-store";
+import { useAuthStore } from "stores/auth-store"
 const authStore = useAuthStore()
 
-import { useChatStore } from "stores/chat-store";
+import { useChatStore } from "stores/chat-store"
 const chatStore = useChatStore()
 
 const chatBox = ref(null)
 
-const animateScroll = async (direction = null) => {
+const animateScroll = async (direction = null, duration = null) => {
   if (!chatBox.value) return
-  // await nextTick() // Ensure that the DOM is updated
   const scrollTarget = chatBox.value.getScrollTarget()
   const scrollHeight = scrollTarget.scrollHeight
-  
-  if(direction == "up"){
-    chatBox.value.setScrollPosition('vertical', 41, 0)
+
+  if (direction == "up") {
     await nextTick()
+    chatStore.setScrollData(scrollHeight)
+    chatBox.value.setScrollPosition("vertical", chatStore.getUpScrollPosition, 0)
     chatStore.loadingMoreMessages = false
-  }else{
-    chatBox.value.setScrollPosition('vertical', scrollHeight, 0)
+  } else {
+    if(duration != null){
+      chatBox.value.setScrollPosition("vertical", scrollHeight)
+    }
+    chatBox.value.setScrollPosition("vertical", scrollHeight, 0)
     await nextTick()
     chatStore.loadingMoreMessages = false
   }
-  // chatBox.value.setScrollPosition('vertical', scrollHeight, 150)
-}
-
-const formattedMessage = (val) => {
-  // Konvertiere Zeilenumbrüche in HTML <br> Tags
-  if(!val) return
-  return val.replace(/\n/g, '<br>')
-}
-
-const showMore = ref(false)
-const toggleShowMore = () => {
-  showMore.value = !showMore.value
-}
-
-const isLongText = (val) => {
-  if(!val) return
-  const lineCount = val.split('\n').length
-  return lineCount > 5
 }
 
 const onScroll = async (info) => {
-  if(info.verticalPercentage == 0) {
+  // console.log("info : ", info);
+  if(chatStore.currentChat){
+    chatStore.currentChat.scrollData.scrollPos = info.verticalPosition
+  }
+  if (!isActive.value) return
+  if (info.verticalPercentage == 0) {
+  // if ((info.verticalSize > info.verticalContainerSize) && info.verticalPercentage == 0) {
     chatStore.loadMoreShowingIteration++
+    // console.log('chatStore.loadMoreShowingIteration :>> ', chatStore.loadMoreShowingIteration);
     chatStore.loadMoreShowing = true
-    if((chatStore.loadMoreShowingIteration) > 0 && (chatStore.loadMoreShowing)) {
-      if(!chatStore.isLastPage){
+    if (chatStore.loadMoreShowingIteration > 0 && chatStore.loadMoreShowing) {
+      if (!chatStore.isLastPage) {
         await chatStore.loadMoreMessages()
         chatStore.loadMoreShowing = false
       }
     }
-  }else{
-    if(!chatStore.loadMoreShowing){
+  } else {
+    if (!chatStore.loadMoreShowing) {
       chatStore.loadMoreShowing = false
     }
   }
 }
 
-onMounted(async () => {
-  if(!chatStore.currentChat.messages?.length){
-    await chatStore.getSingleChat(route.params.id)
-    await nextTick()
-    await animateScroll("down")
-  }else{
-    await nextTick()
-    await animateScroll("down")
-  }
+const isActive = ref(true)
+
+onActivated(async () => {
+  console.log("ChatPage ACTIVATED !!!")
+  isActive.value = true
   
+  // // set CurrentChat like in onMounted Hook
+  if (!chatStore.currentChat.messages?.length) {
+    await chatStore.getSingleChat(route.params.id);
+    await nextTick();
+    // if(chatStore.currentChat.scrollData.scrollPo > 0){
+    //   await animateScroll("down");
+    // }
+    await animateScroll("down");
+  } else {
+    await nextTick();
+    // await animateScroll("down");
+  }
+  const scrollTarget = chatBox.value.getScrollTarget()
+  const scrollHeight = scrollTarget.scrollHeight
+
+  chatStore.setScrollData(scrollHeight)
+
   watchArray(chatStore.currentChat.messages, async (newList, oldList, added, removed) => {
-    if(newList.length > oldList.length){
-      await nextTick()
-      if(chatStore.loadingMoreMessages){
-        return await animateScroll("up")
-      }else{
-        return await animateScroll("down")
+
+    if (newList.length > oldList.length) {
+      await nextTick();
+      
+      if (chatStore.loadingMoreMessages) {
+        return await animateScroll("up");
+      } else {
+        return await animateScroll("down");
       }
     }
-  })
+  });
+
+  watch(() => chatStore.showReplayBox, async (newVal) => {
+      if (newVal) {
+        // Sobald die ReplayBox angezeigt wird, nach unten scrollen
+        await nextTick();
+        await animateScroll("down", 100);
+      }
+    }
+  );
+})
+
+onDeactivated(() => {
+  // console.log("ChatPage DEACTIVATED !!!")
+  // chatStore.setCurrentChat(null)
+  chatStore.loadMoreShowing = false
+  chatStore.loadingMoreMessages = false
+  isActive.value = false
+})
+
+onMounted(async () => {
+  // console.log("ChatPage MOUNTED !!!")
 })
 
 onUnmounted(() => {
-  console.log("unmounted")
-  chatStore.setCurrentChat(null)
-  chatStore.loadMoreShowing = false
-  chatStore.loadingMoreMessages = false
-})
+  // console.log("ChatPage UNMOUNTED !!!")
+});
 </script>
 
 <style>
 .custom-footer{
   position: absolute;
-  bottom: 0;
+  bottom: 50;
   right: 0;
   left: 0;
 }

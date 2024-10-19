@@ -1,21 +1,15 @@
 <template>
   <q-header class="shadow-2" ref="headerRef">
-    <q-toolbar class="q-px-xs" v-if="route.name == 'chats'">
-
+    <q-toolbar class="q-px-xs bg-blue-grey-8" v-if="route.name == 'chats'">
       <q-item class="col text-white q-px-sm">
         <q-item-section >
-          <!-- <q-item-label caption class="bottom-distance text-white text-bold" >Chats</q-item-label> -->
           <div class="text-h6">Chats</div>
         </q-item-section>
       </q-item>
-
-      <!-- <q-btn flat round icon="more_vert" @click="goBack" /> -->
       <HeaderMenueRight />
-
     </q-toolbar>
 
-    <q-toolbar class="q-px-xs" v-if="route.name == 'chat'">
-
+    <q-toolbar class="q-px-xs bg-blue-grey-8" v-if="route.name == 'chat'">
       <q-btn
         key="close-button"
         flat
@@ -35,10 +29,8 @@
           <q-item-label caption class="bottom-distance text-white" v-else >zuletzt Online: 01.01.2024</q-item-label>
         </q-item-section>
       </q-item>
-
-      <!-- <q-btn flat round icon="more_vert" @click="goBack" /> -->
+      
       <HeaderMenueRight />
-
     </q-toolbar>
   </q-header>
 </template>

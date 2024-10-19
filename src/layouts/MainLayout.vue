@@ -97,18 +97,16 @@
       </q-list>
     </q-drawer> -->
 
-    <q-page-container class="position-relative">
-      <router-view ref="bodyRef"/>
+    <q-page-container>
+      <router-view v-slot="{ Component }" ref="bodyRef">
+        <!-- <TransitionGroup name="mainlayout" appear > -->
+          <component :is="Component" key="MainLayout" />
+        <!-- </TransitionGroup> -->
+      </router-view>
     </q-page-container>
-
-    <!-- <q-footer class="shadow-2" ref="footerRef">
-      <q-toolbar :class="route.name == 'tasks' ? 'bg-white' : 'bg-primary'" >
-        <TaskInput v-if="route.name == 'tasks'" class="q-pa-xs" />
-        <q-toolbar-title v-else>Footer</q-toolbar-title>
-      </q-toolbar>
-    </q-footer> -->
     
     <q-inner-loading
+      style="z-index: 3000;"
       :showing="authStore.isAuthProceeding.loading"
       :label="authStore.isAuthProceeding.label"
       label-class="primary"
@@ -118,9 +116,8 @@
 </template>
 
 <script setup>
-import Header from "../components/Header.vue";
 // https://casl.js.org/v6/en/package/casl-vue
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, TransitionGroup } from 'vue'
 
 import { useAuthStore } from "stores/auth-store";
 const authStore = useAuthStore()
@@ -172,16 +169,30 @@ const toggleMultiSelection = () => {
   }
 }
 
-const avatar = ref(`http://${process.env.VUE_APP_SERVER_IP}:8000/avatars/avatar2.png`)
-// const avatar = ref(`https://${process.env.VUE_APP_SERVER_IP}/avatars/avatar2.png`)
+const avatar = ref(null)
+if (process.env.DEV) {
+  avatar.value = `http://${process.env.VUE_APP_SERVER_IP}:8000/avatars/avatar2.png`
+}else{
+  avatar.value = `https://${process.env.VUE_APP_SERVER_IP}/avatars/avatar2.png`
+}
 </script>
 
 <style>
 body {
-  /* overflow: hidden; */
+  overflow: hidden;
 }
 .q-scroll-area-custom {
   display: flex;
   flex-grow: 1;
+}
+
+.mainlayout-enter-active, 
+.mainlayout-leave-active {
+  transition: opacity 0.3s
+}
+
+.mainlayout-enter, 
+.mainlayout-leave-active {
+  opacity: 0
 }
 </style>

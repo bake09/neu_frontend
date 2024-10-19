@@ -1,5 +1,5 @@
 <template>
-  <q-page class="flex flex-center">
+  <!-- <q-page class="flex flex-center my-gradient">
     <q-card style="min-width: 300px;">
       <q-card-section>
         <q-form
@@ -17,7 +17,28 @@
         <q-btn label="Noch keinen Account?" to="/register" exact class="q-mt-sm full-width" no-caps color="primary" flat/>
       </q-card-section>
     </q-card>
-  </q-page>
+  </q-page> -->
+  <page>
+    <page-body class="flex flex-center my-gradient">
+      <q-card style="width: 400px; max-width: 90%;">
+        <q-card-section>
+          <q-form
+              @submit.prevent="handleLogin"
+              @reset="handleReset"
+              class="q-gutter-md"
+            >
+            <div class="text-h6">Login Page</div>
+            <q-input outlined v-model="authStore.loginForm.email" placeholder="Email" />
+            <q-input outlined v-model="authStore.loginForm.password" label="Password" type="password"/>
+            <div class="row">
+              <q-btn label="Login" type="submit" class="col" color="black"/>
+            </div>
+          </q-form>
+          <q-btn label="Noch keinen Account?" to="/register" exact class="q-mt-sm full-width" no-caps color="primary" flat/>
+        </q-card-section>
+      </q-card>
+    </page-body>
+  </page>
 </template>
 
 <script setup>

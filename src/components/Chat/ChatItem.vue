@@ -1,15 +1,21 @@
 <template>
   <q-item clickable v-ripple class="non-selectable" ref="itemRef" @click="handleClick(chat)">
-    <q-item-section avatar>
+    <q-item-section avatar class="bg-yellows">
       <q-avatar color="teal" text-color="white" icon="chat" />
     </q-item-section>
 
-    <q-item-section>
-      <!-- <q-icon name="check" class="q-pr-xs" color="blue" style="font-size: 16px;"/>
-      <q-icon name="done_all" class="q-pr-xs" color="blue" style="font-size: 16px;"/> -->
-      <q-item-label lines="1" class="text-bold" style="max-width: 170px !important;">{{ chat.name}} {{ chatStore.slicedChatId(chat.id) }}</q-item-label>
-      <q-item-label lines="1" caption class="text-bold text-green" style="max-width: 50vw !important;" v-if="chat.isTyping">{{ chat.isTyping }}</q-item-label>
-      <q-item-label lines="1" caption style="max-width: 50vw !important;" v-else>{{ chat.last_message?.user.name }}: {{ chat.last_message?.content }}</q-item-label>
+    <q-item-section class="col bg-yellows">
+      <q-item-label lines="1" class="text-bold" style="max-width: 80% !important;">{{ chat.name}} {{ chatStore.slicedChatId(chat.id) }}</q-item-label>
+      <q-item-label lines="1" caption class="text-bold text-green" style="max-width: 80% !important;" v-if="chat.isTyping">{{ chat.isTyping }}</q-item-label>
+      <q-item-label lines="1" caption style="max-width: 50vw !important;" v-else>
+        {{ chat.last_message?.user.name }}:
+        <template v-if="chat.last_message?.image_url">
+          <q-icon name="image" /> Image
+        </template>
+        <template v-else>
+          {{ chat.last_message?.content }}
+        </template>
+      </q-item-label>
     </q-item-section>
 
     <q-item-section side top class="q-gutter-y-xs">
@@ -22,6 +28,7 @@
 
 <script setup>
 import { ref, nextTick } from "vue";
+import useGoBack from "src/use/useGoBack";
 
 import { useChatStore } from "stores/chat-store";
 const chatStore = useChatStore()
@@ -36,6 +43,15 @@ import { useRouter } from "vue-router";
 const router = useRouter()
 
 const handleClick = async (chat) => {
+  console.log("handleClick from ChatItem.vue triggered : ", chat)
+  
+  
+  await router.push({ name: 'chats'})
+
+  // setTimeout(() => {
+  //   console.log("triggered");
+  // }, 1000);
+
   await chatStore.setCurrentChat(chat)
   await router.push({ name: 'chat', params:{ id: chat.id}})
   await nextTick()

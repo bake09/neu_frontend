@@ -28,7 +28,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   })
 
-
   // Actions
   async function handleLogin () {
     isAuthProceeding.value.loading = true
@@ -38,7 +37,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.log("auth-store : ", res)
       await getUser()
       isAuthProceeding.value.loading = false // Auf await achten, um sicherzustellen, dass der Benutzer geladen wird
-      this.router.replace('/chats')
+      this.router.replace('/chat/chats')
     } catch (err) {
       console.error(err)
       isAuthProceeding.value.loading = false
@@ -59,14 +58,14 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthProceeding.value.label = 'Logging in...'
     try {
       const res = await api.post('auth/token/login', loginForm.value)
-      console.log("auth-store TOKEN: ", res.data)
+      console.log("auth-store : ", res)
       token.value = res.data.token
       user.value = res.data.user
       LocalStorage.setItem('token', res.data.token)
       LocalStorage.setItem('user', res.data.user)
       await getUser()
       isAuthProceeding.value.loading = false // Auf await achten, um sicherzustellen, dass der Benutzer geladen wird
-      this.router.replace('/chats')
+      this.router.replace('/chat/chats')
     } catch (err) {
       console.error(err)
       isAuthProceeding.value.loading = false
@@ -82,18 +81,18 @@ export const useAuthStore = defineStore('auth', () => {
       // })
     }
   }
-  async function getUser () {
+  async function getUser () {  
+    const id = user.value.id
     try {
-      const res = await api.get('/user')
-      console.log("getUser : ", res.data)
-      user.value = res.data
-      LocalStorage.setItem('user', res.data)
+      const res = await api.get(`/user/${id}`)
+      user.value = res.data.data
+      LocalStorage.setItem('user', res.data.data)
       Notify.create({
         position: 'top',
         progress: true, 
         timeout: 3500,
         type: 'positive',
-        message: res.data.email,
+        message: res.data.data.email,
         actions: [
           { icon: 'close', color: 'white', round: true, handler: () => { /* ... */ } }
         ]
@@ -226,7 +225,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
   async function updateProfile () {
-    
+    console.log("updateProfile triggered")
   }
   // Return everything
   return {
@@ -249,7 +248,7 @@ export const useAuthStore = defineStore('auth', () => {
     clearUser,
     handleTokenLogin,
     handleTokenLogout,
-    handleImageUpload
-
+    handleImageUpload,
+    updateProfile,
   }
 })

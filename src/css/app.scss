@@ -1,1 +1,97 @@
-// app global css in SCSS form
+// body
+body{
+    overflow: hidden;
+}
+.background {
+  background-image: url('/background.png');
+  background-size: contain;
+  background-repeat: repeat;
+}
+
+// page
+.page {
+    z-index: 2000;
+    overflow: hidden;
+    
+    @media (min-width: 851px) {
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+    }
+
+
+    &-nudger{
+        transition: transform 0.4s;
+        &:after{
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0);
+            z-index: 2000;
+            transition: background 0.4s;
+            pointer-events: none;
+        }
+        &.nudge-left{
+            transform: translateX(-60px);
+            &:after{
+                background: rgba(0,0,0,0.15);
+            }
+        } 
+    }
+    &-header{
+        background-color: #fff;
+        color: #000;
+        &-title{
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 12px;
+        }
+    }
+    &-body{
+        &-spacer{
+            &-header{
+                height: 51px;
+            }
+            &-footer{
+                height: 73px;
+            }
+        }
+    }
+}
+
+// .left-menu{
+//     @media (min-width: 851px) {
+//         border-top-left-radius: 5px !important;
+//         border-bottom-left-radius: 5px !important;
+//     }
+// }
+// transitions
+
+.slideInRight, -slideOutRight{
+    -webkit-animation-duration: 0.4s;
+    -moz-animation-duration: 0.4s;
+    -o-animation-duration: 0.4s;
+    animation-duration: 0.4s;
+}
+
+.left-menu{
+    border-right: 1px solid;
+    border-color:  #d3d3d3;
+}
+
+
+// Dark Mode
+body.body--dark {
+    .page, .page-header, .left-menu, .right-chat-list, .right-menu-toolbar>.q-toolbar {
+        background-color: #121212 !important;
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.28);
+    }
+}
+  
+body.body--light {
+    .page{
+        background-color: #fff !important; // Dark Mode Hintergrund
+    }
+}

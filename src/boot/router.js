@@ -1,7 +1,32 @@
 import { boot } from 'quasar/wrappers'
 import { useAuthStore } from 'stores/auth-store';
+import { useNavigationStore } from 'stores/navigation-store'
 
-export default boot(async ({ app, router }) => {
+let routerInstance = null
+
+export default boot(async ({ app, router, store  }) => {
+  routerInstance = router
+  const navigationStore = useNavigationStore(store)
+
+  router.afterEach((to, from) => {
+    let fromRootPath = `/${from.path.split('/')[1]}`
+    let toRootPath = `/${to.path.split('/')[1]}`
+
+    // console.log('fromRootPath :>> ', fromRootPath);
+    // console.log('toRootPath :>> ', toRootPath);
+
+    if(fromRootPath != toRootPath){
+      navigationStore.usePageTransition = false
+    }else{
+      navigationStore.usePageTransition = true
+      
+      if((from.path == to.path) && (to.path != toRootPath)){
+        router.push(toRootPath)
+      }
+    }
+    navigationStore.updateNavItem(router)
+  })
+
   router.beforeEach((to, from, next) => {
     const authStore = useAuthStore();
 
@@ -24,3 +49,5 @@ export default boot(async ({ app, router }) => {
     }
   });
 });
+
+export { routerInstance }

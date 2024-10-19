@@ -3,35 +3,15 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { 
+      {
         path: '', 
         component: () => import('pages/IndexPage.vue'),
         name: 'index'
       },
       { 
-        path: '/profile', 
-        component: () => import('pages/ProfilePage.vue'),
-        name: 'profile'
-      },
-      { 
-        path: '/tasks', 
-        component: () => import('pages/TaskPage.vue'),
-        name: 'tasks'
-      },
-      { 
-        path: '/users', 
-        component: () => import('pages/UsersPage.vue'),
-        name: 'users'
-      },
-      { 
         path: '/login', 
         component: () => import('pages/LoginPage.vue'),
         name: 'login'
-      },
-      { 
-        path: '/userslist', 
-        component: () => import('pages/UserListPage.vue'),
-        name: 'userslist'
       },
       { 
         path: '/register', 
@@ -43,28 +23,53 @@ const routes = [
         component: () => import('pages/LogoutPage.vue'),
         name: 'logout'
       },
+      { 
+        path: '/users', 
+        component: () => import('pages/UsersPage.vue'),
+        name: 'users'
+      },
+      { 
+        path: '/userslist', 
+        component: () => import('pages/UserListPage.vue'),
+        name: 'userslist'
+      },
+      { 
+        path: '/tasks', 
+        component: () => import('pages/TaskPage.vue'),
+        name: 'tasks'
+      },
     ]
   },
   { 
     path: '/', 
     component: () => import('layouts/ChatLayout.vue'),
-    // component: () => import('pages/ChatsPage.vue'),
     name: 'chatsLayout',
     children: [
       { 
-        path: '/chats', 
+        path: '/chat', 
+        component: () => import('pages/ChatIndexPage.vue'),
+      },
+      { 
+        path: '/chat/chats', 
         component: () => import('pages/ChatsPage.vue'),
-        name: 'chats'
+        name: 'chats',
+        children: [
+          {
+            path: '/chat/chats/:id', 
+            component: () => import('pages/ChatPage.vue'),
+            name: 'chat'
+          },
+        ]
       },
       { 
-        path: '/chats/chat/:id', 
-        component: () => import('pages/ChatPage.vue'),
-        name: 'chat'
+        path: '/profile', 
+        component: () => import('pages/ProfilePage.vue'),
+        name: 'profile'
       },
       { 
-        path: '/infinity', 
-        component: () => import('pages/InfinityPage.vue'),
-        name: 'infinity'
+        path: '/settings', 
+        component: () => import('pages/SettingsPage.vue'),
+        name: 'settings'
       },
     ]
   },

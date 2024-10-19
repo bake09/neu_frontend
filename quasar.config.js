@@ -26,6 +26,7 @@ module.exports = configure(function (/* ctx */) {
       'i18n',
       'axios',
       'echo', // echo before router!
+      'global-components',
       'router',
     ],
 
